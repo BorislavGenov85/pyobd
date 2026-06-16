@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>OBD-II Dashboard</title>
+
+    <link rel="stylesheet"
+          href="/static/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header class="topbar">
+    <h1>OBD-II Dashboard</h1>
+
+    <div id="status">
+        Connecting...
+    </div>
+</header>
+
+
+<!-- ====================================================== -->
+<!-- TABS -->
+<!-- ====================================================== -->
+
+<div class="tabs">
+
+    <button class="tab-button active"
+            data-tab="dashboard">
+        Dashboard
+    </button>
+
+    <button class="tab-button"
+            data-tab="dtc">
+        DTC
+    </button>
+
+    <button class="tab-button"
+            data-tab="freeze">
+        Freeze Frame
+    </button>
+
+    <button class="tab-button"
+            data-tab="graph">
+        Graph
+    </button>
+
+    <button class="tab-button"
+            data-tab="graphs4">
+        4 Graphs
+    </button>
+
+    <button class="tab-button"
+            data-tab="trace">
+        Trace
+    </button>
+
+    <button class="tab-button"
+            data-tab="tests">
+        Tests
+    </button>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- DASHBOARD -->
+<!-- ====================================================== -->
+
+<div class="tab-content active"
+     id="dashboard">
+
+    <div class="card">
+
+        <h2>Sensors</h2>
+
+        <table id="sensor-table">
+            <thead>
+            <tr>
+                <th>Sensor</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>RPM (Live)</h2>
+
+        <canvas id="rpmChart"
+                height="120"></canvas>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- DTC -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="dtc">
+
+    <div class="card">
+
+        <div class="toolbar">
+
+            <button id="refresh-dtc">
+                Refresh DTC
+            </button>
+
+            <button id="clear-dtc">
+                Clear DTC
+            </button>
+
+        </div>
+
+        <table id="dtc-table">
+
+            <thead>
+            <tr>
+                <th>Code</th>
+                <th>Status</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- FREEZE FRAME -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="freeze">
+
+    <div class="card">
+
+        <h2>Freeze Frame</h2>
+
+        <table id="freeze-table">
+
+            <thead>
+            <tr>
+                <th>Sensor</th>
+                <th>Value</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- SINGLE GRAPH -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="graph">
+
+    <div class="card">
+
+        <label for="graph-select">
+            Sensor:
+        </label>
+
+        <select id="graph-select">
+        </select>
+
+        <canvas id="graphChart"
+                height="120"></canvas>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- 4 GRAPHS -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="graphs4">
+
+    <div class="grid-2">
+
+        <div class="card">
+
+            <select id="graph1-select"></select>
+
+            <canvas id="graph1"
+                    height="120"></canvas>
+
+        </div>
+
+        <div class="card">
+
+            <select id="graph2-select"></select>
+
+            <canvas id="graph2"
+                    height="120"></canvas>
+
+        </div>
+
+        <div class="card">
+
+            <select id="graph3-select"></select>
+
+            <canvas id="graph3"
+                    height="120"></canvas>
+
+        </div>
+
+        <div class="card">
+
+            <select id="graph4-select"></select>
+
+            <canvas id="graph4"
+                    height="120"></canvas>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- TRACE -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="trace">
+
+    <div class="card">
+
+        <div class="toolbar">
+
+            <button id="clear-trace">
+                Clear
+            </button>
+
+            <button id="save-trace">
+                Save
+            </button>
+
+        </div>
+
+        <pre id="trace-log">
+Trace output...
+        </pre>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- TESTS -->
+<!-- ====================================================== -->
+
+<div class="tab-content"
+     id="tests">
+
+    <div class="card">
+
+        <table id="tests-table">
+
+            <thead>
+            <tr>
+                <th>Test</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- EXPORT -->
+<!-- ====================================================== -->
+
+<div class="floating-actions">
+
+    <button id="export-current">
+        Export CSV
+    </button>
+
+    <button id="start-log">
+        Start Logging
+    </button>
+
+</div>
+
+
+<script src="/static/app.js"></script>
+
+</body>
+</html>

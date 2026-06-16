@@ -1,0 +1,416 @@
+// ---------------------------------------------------------------------
+// DOM
+// ---------------------------------------------------------------------
+
+const statusEl = document.getElementById("status");
+const tableBody = document.querySelector("#sensor-table tbody");
+
+// sensor name -> DOM cells
+const rowElements = {};
+
+// ---------------------------------------------------------------------
+// RPM CHART
+// ---------------------------------------------------------------------
+
+const ctx = document
+    .getElementById("rpmChart")
+    .getContext("2d");
+
+const rpmChart = new Chart(ctx, {
+    type: "line",
+
+    data: {
+        labels: [],
+        datasets: [
+            {
+                label: "RPM",
+                data: [],
+                borderColor: "rgb(75, 192, 192)",
+                tension: 0.2,
+                pointRadius: 0,
+            },
+        ],
+    },
+
+    options: {
+        animation: false,
+        responsive: true,
+
+        scales: {
+            y: {
+                beginAtZero: true,
+            },
+        },
+    },
+});
+
+const MAX_POINTS = 60;
+
+
+// ---------------------------------------------------------------------
+// BUILD TABLE ONCE
+// ---------------------------------------------------------------------
+
+function buildTable(commands) {
+
+    tableBody.innerHTML = "";
+
+    for (const cmd of commands) {
+
+        const row = document.createElement("tr");
+
+        const sensorCell = document.createElement("td");
+        const valueCell = document.createElement("td");
+        const unitCell = document.createElement("td");
+
+        // Example:
+        // Engine RPM (010C)
+
+        sensorCell.innerHTML =
+            `<strong>${cmd.desc}</strong><br>` +
+            `<small>${cmd.pid}</small>`;
+
+        valueCell.textContent = "—";
+
+        unitCell.textContent =
+            cmd.unit || "";
+
+        row.appendChild(sensorCell);
+        row.appendChild(valueCell);
+        row.appendChild(unitCell);
+
+        tableBody.appendChild(row);
+
+        rowElements[cmd.name] = {
+            valueCell,
+            unitCell,
+        };
+    }
+}
+
+
+// ---------------------------------------------------------------------
+// UPDATE VALUES ONLY
+// ---------------------------------------------------------------------
+
+function updateValues(values) {
+
+    for (const [name, data] of Object.entries(values)) {
+
+        const row = rowElements[name];
+
+        if (!row)
+            continue;
+
+        row.valueCell.textContent =
+            data.value === null
+                ? "—"
+                : data.value;
+
+        if (data.unit)
+            row.unitCell.textContent =
+                data.unit;
+    }
+}
+
+
+// ---------------------------------------------------------------------
+// RPM CHART
+// ---------------------------------------------------------------------
+
+function updateRPM(values) {
+
+    if (!values.RPM)
+        return;
+
+    const rpm = values.RPM.value;
+
+    if (rpm === null)
+        return;
+
+    const now =
+        new Date().toLocaleTimeString();
+
+    rpmChart.data.labels.push(now);
+
+    rpmChart.data.datasets[0]
+        .data.push(rpm);
+
+    if (
+        rpmChart.data.labels.length >
+        MAX_POINTS
+    ) {
+        rpmChart.data.labels.shift();
+
+        rpmChart.data.datasets[0]
+            .data.shift();
+    }
+
+    rpmChart.update();
+}
+
+
+// ---------------------------------------------------------------------
+// WEBSOCKET
+// ---------------------------------------------------------------------
+
+function connect() {
+
+    const protocol =
+        location.protocol === "https:"
+            ? "wss"
+            : "ws";
+
+    const ws = new WebSocket(
+        `${protocol}://${location.host}/ws/sensors`
+    );
+
+    ws.onopen = () => {
+
+        statusEl.textContent =
+            "Connected";
+    };
+
+    ws.onclose = () => {
+
+        statusEl.textContent =
+            "Disconnected - reconnecting...";
+
+        setTimeout(
+            connect,
+            2000
+        );
+    };
+
+    ws.onerror = () => {
+        ws.close();
+    };
+
+    ws.onmessage = (event) => {
+
+        const msg =
+            JSON.parse(event.data);
+
+        // -------------------------------------------------
+        // adapter disconnected
+        // -------------------------------------------------
+
+        if (
+            msg._status ===
+            "disconnected"
+        ) {
+
+            statusEl.textContent =
+                "OBD adapter not connected";
+
+            return;
+        }
+
+        // -------------------------------------------------
+        // capabilities packet
+        // -------------------------------------------------
+
+        if (
+            msg._type ===
+            "capabilities"
+        ) {
+
+            buildTable(
+                msg.commands
+            );
+
+            statusEl.textContent =
+                `Connected (${msg.commands.length} PIDs)`;
+
+            return;
+        }
+
+        // -------------------------------------------------
+        // live updates
+        // -------------------------------------------------
+
+        if (
+            msg._type ===
+            "update"
+        ) {
+
+            updateValues(
+                msg.values
+            );
+
+            updateRPM(
+                msg.values
+            );
+        }
+    };
+}
+
+// =====================================================
+// DTC
+// =====================================================
+
+const dtcTableBody =
+    document.querySelector(
+        "#dtc-table tbody"
+    );
+
+const refreshDtcBtn =
+    document.getElementById(
+        "refresh-dtc"
+    );
+
+const clearDtcBtn =
+    document.getElementById(
+        "clear-dtc"
+    );
+
+
+async function loadDTC() {
+
+    dtcTableBody.innerHTML = "";
+
+    try {
+
+        const response =
+            await fetch("/api/dtc");
+
+        const data =
+            await response.json();
+
+        if (!data.connected) {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML =
+                `<td colspan="3">
+            OBD adapter not connected
+         </td>`;
+
+            dtcTableBody.appendChild(
+                row
+            );
+
+            return;
+        }
+
+        if (data.dtc.length === 0) {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML =
+                `<td colspan="3">
+            No DTC codes
+         </td>`;
+
+            dtcTableBody.appendChild(
+                row
+            );
+
+            return;
+        }
+
+        for (const dtc of data.dtc) {
+
+            const row =
+                document.createElement("tr");
+
+            row.innerHTML = `
+        <td>${dtc.code}</td>
+        <td class="dtc-active">
+            ${dtc.status}
+        </td>
+        <td>${dtc.description}</td>
+      `;
+
+            dtcTableBody.appendChild(
+                row
+            );
+        }
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+
+refreshDtcBtn.addEventListener(
+    "click",
+    loadDTC
+);
+
+clearDtcBtn.addEventListener(
+    "click",
+    async () => {
+
+        const ok = confirm(
+            "Clear all DTC codes?\n\n" +
+            "This will also clear " +
+            "freeze frame data."
+        );
+
+        if (!ok)
+            return;
+
+        try {
+
+            const response =
+                await fetch(
+                    "/api/dtc/clear",
+                    {
+                        method: "POST"
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (result.success) {
+
+                alert(
+                    "DTC cleared."
+                );
+
+                await loadDTC();
+
+            } else {
+
+                alert(
+                    result.error ||
+                    "Failed to clear DTC"
+                );
+            }
+
+        } catch (err) {
+
+            alert(err);
+        }
+    }
+);
+
+document.querySelectorAll(".tab-button").forEach(btn => {
+    btn.addEventListener("click", () => {
+        // remove "active" from all buttons
+        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+        // hide all tabs
+        document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+        // activate button
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        // show current tab
+        document.getElementById(tab).classList.add("active");
+
+        if (tab === "dtc") {
+          loadDTC();
+        }
+      }
+    );
+  });
+
+// ---------------------------------------------------------------------
+// START
+// ---------------------------------------------------------------------
+
+connect();

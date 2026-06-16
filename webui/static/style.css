@@ -1,0 +1,500 @@
+/* =========================================================
+   OBD-II Dashboard v5
+   Professional Dark Theme
+   ========================================================= */
+
+:root {
+
+    --bg: #131722;
+    --bg-secondary: #1b2233;
+    --card: #1e2638;
+
+    --border: #2e3852;
+
+    --text: #e8edf7;
+    --text-dim: #9ba8c7;
+
+    --accent: #4ea1ff;
+    --accent-hover: #6ab3ff;
+
+    --success: #3fb950;
+    --warning: #d29922;
+    --danger: #f85149;
+
+    --radius: 12px;
+
+    --shadow:
+        0 0 0 1px rgba(255,255,255,0.03),
+        0 8px 24px rgba(0,0,0,0.35);
+
+    --transition: 0.15s ease;
+}
+
+/* =========================================================
+   Base
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Inter,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+
+    background: var(--bg);
+
+    color: var(--text);
+
+    min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+    margin-top: 0;
+}
+
+button,
+select {
+
+    background: var(--bg-secondary);
+
+    color: var(--text);
+
+    border: 1px solid var(--border);
+
+    border-radius: 8px;
+
+    padding: 10px 14px;
+
+    cursor: pointer;
+
+    transition: var(--transition);
+}
+
+button:hover,
+select:hover {
+
+    border-color: var(--accent);
+
+    background: #25304a;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+select {
+    width: 100%;
+}
+
+/* =========================================================
+   Layout
+   ========================================================= */
+
+.topbar {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 16px 24px;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--bg-secondary);
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+}
+
+.topbar h1 {
+
+    margin: 0;
+
+    font-size: 1.4rem;
+}
+
+#status {
+
+    font-size: 0.95rem;
+
+    color: var(--text-dim);
+}
+
+/* =========================================================
+   Tabs
+   ========================================================= */
+
+.tabs {
+
+    display: flex;
+
+    gap: 8px;
+
+    padding: 16px;
+
+    overflow-x: auto;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--bg-secondary);
+}
+
+.tab-button {
+
+    white-space: nowrap;
+}
+
+.tab-button.active {
+
+    background: var(--accent);
+
+    color: white;
+
+    border-color: var(--accent);
+}
+
+.tab-content {
+
+    display: none;
+
+    padding: 20px;
+}
+
+.tab-content.active {
+
+    display: block;
+}
+
+/* =========================================================
+   Cards
+   ========================================================= */
+
+.card {
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 20px;
+
+    margin-bottom: 20px;
+
+    box-shadow: var(--shadow);
+}
+
+.card h2 {
+
+    margin-bottom: 16px;
+}
+
+/* =========================================================
+   Toolbar
+   ========================================================= */
+
+.toolbar {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 16px;
+
+    flex-wrap: wrap;
+}
+
+/* =========================================================
+   Tables
+   ========================================================= */
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+thead {
+
+    background: rgba(255,255,255,0.03);
+}
+
+th,
+td {
+
+    padding: 12px;
+
+    border-bottom: 1px solid var(--border);
+
+    text-align: left;
+}
+
+th {
+
+    color: var(--text-dim);
+
+    font-size: 0.85rem;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+}
+
+tbody tr:hover {
+
+    background: rgba(255,255,255,0.03);
+}
+
+/* sensor values */
+
+td:nth-child(2) {
+
+    font-family:
+        "Cascadia Code",
+        Consolas,
+        monospace;
+
+    font-weight: 600;
+
+    color: #7ee787;
+}
+
+/* =========================================================
+   Grid Layouts
+   ========================================================= */
+
+.grid-2 {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(350px, 1fr));
+
+    gap: 20px;
+}
+
+.grid-4 {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(250px, 1fr));
+
+    gap: 20px;
+}
+
+/* =========================================================
+   Charts
+   ========================================================= */
+
+canvas {
+
+    width: 100% !important;
+
+    max-width: 100%;
+
+    background: #151b2a;
+
+    border-radius: 10px;
+
+    padding: 10px;
+}
+
+/* =========================================================
+   Trace
+   ========================================================= */
+
+#trace-log {
+
+    background: #0d1117;
+
+    color: #58a6ff;
+
+    padding: 16px;
+
+    border-radius: 10px;
+
+    overflow-y: auto;
+
+    max-height: 500px;
+
+    font-family:
+        "Cascadia Code",
+        Consolas,
+        monospace;
+
+    white-space: pre-wrap;
+}
+
+/* =========================================================
+   Floating Actions
+   ========================================================= */
+
+.floating-actions {
+
+    position: fixed;
+
+    bottom: 20px;
+
+    right: 20px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    z-index: 999;
+}
+
+.floating-actions button {
+
+    background: var(--accent);
+
+    color: white;
+
+    border: none;
+
+    min-width: 160px;
+}
+
+.floating-actions button:hover {
+
+    background: var(--accent-hover);
+}
+
+/* =========================================================
+   Status Badges
+   ========================================================= */
+
+.badge-ok {
+
+    color: var(--success);
+
+    font-weight: 700;
+}
+
+.badge-warning {
+
+    color: var(--warning);
+
+    font-weight: 700;
+}
+
+.badge-error {
+
+    color: var(--danger);
+
+    font-weight: 700;
+}
+
+/* =========================================================
+   DTC Rows
+   ========================================================= */
+
+.dtc-active {
+
+    color: var(--danger);
+
+    font-weight: bold;
+}
+
+.dtc-pending {
+
+    color: var(--warning);
+
+    font-weight: bold;
+}
+
+.dtc-passive {
+
+    color: var(--text-dim);
+}
+
+/* =========================================================
+   Scrollbar
+   ========================================================= */
+
+::-webkit-scrollbar {
+
+    width: 10px;
+
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+
+    background: #39445f;
+
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+
+    background: #51607f;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .topbar {
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 10px;
+    }
+
+    .tabs {
+
+        padding: 10px;
+    }
+
+    .tab-content {
+
+        padding: 12px;
+    }
+
+    .floating-actions {
+
+        left: 10px;
+
+        right: 10px;
+
+        bottom: 10px;
+    }
+
+    .floating-actions button {
+
+        width: 100%;
+    }
+
+    table {
+
+        font-size: 0.9rem;
+    }
+}
