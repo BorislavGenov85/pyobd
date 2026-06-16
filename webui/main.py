@@ -20,8 +20,8 @@ import uvicorn
 # CONFIG
 # ---------------------------------------------------------------------
 
-# OBD_PORT = "socket://localhost:35000"
-OBD_PORT = "COM8"
+OBD_PORT = "socket://localhost:35000"
+# OBD_PORT = "COM8"
 
 OBD_BAUDRATE = None
 
@@ -97,7 +97,6 @@ UNIT_MAP = {
     "liter_per_hour": "L/h",
     "lph": "L/h",
 }
-
 
 # ---------------------------------------------------------------------
 # Helpers
@@ -528,6 +527,52 @@ async def clear_dtc():
                 "error": str(ex)
             }
         )
+
+@app.get("/api/freeze")
+async def get_freeze():
+
+    global connection
+
+    if (connection is None or not connection.is_connected()):
+        return {
+            "connected": False,
+            "supported": False,
+            "data": []
+        }
+
+    try:
+
+        async with obd_lock:
+
+            response = await asyncio.to_thread(
+                connection.query,
+                obd.commands.FREEZE_DTC
+            )
+
+        if (response is None or response.value is None):
+            return {
+                "connected": True,
+                "supported": False,
+                "data": []
+            }
+
+        return {
+            "connected": True,
+            "supported": True,
+            "freeze_dtc": str(response.value),
+            "data": []
+        }
+
+    except Exception as ex:
+
+        print("[FREEZE]", ex)
+
+        return {
+            "connected": True,
+            "supported": False,
+            "error": str(ex),
+            "data": []
+        }
 
     # ---------------------------------------------------------------------
     # RUN

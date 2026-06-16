@@ -390,6 +390,53 @@ clearDtcBtn.addEventListener(
     }
 );
 
+const freezeTableBody = document.querySelector("#freeze-table tbody");
+
+async function loadFreeze() {freezeTableBody.innerHTML = "";
+  try {
+    const response = await fetch("/api/freeze");
+
+    const data = await response.json();
+
+    if (!data.connected) {
+      freezeTableBody.innerHTML =
+        `<tr>
+            <td colspan="2">
+              OBD adapter not connected
+            </td>
+         </tr>`;
+
+      return;
+    }
+
+    if (!data.supported) {
+      freezeTableBody.innerHTML =
+        `<tr>
+            <td colspan="2">
+              No freeze frame data available
+            </td>
+         </tr>`;
+
+      return;
+    }
+
+    if (data.freeze_dtc) {
+      const row = document.createElement("tr");
+      row.innerHTML =
+        `<td>Trigger DTC</td>
+         <td>${data.freeze_dtc}</td>`;
+
+      freezeTableBody.appendChild(
+        row
+      );
+    }
+
+  } catch (err) {
+
+    console.error(err);
+  }
+}
+
 document.querySelectorAll(".tab-button").forEach(btn => {
     btn.addEventListener("click", () => {
         // remove "active" from all buttons
@@ -402,8 +449,15 @@ document.querySelectorAll(".tab-button").forEach(btn => {
         // show current tab
         document.getElementById(tab).classList.add("active");
 
-        if (tab === "dtc") {
-          loadDTC();
+        switch (tab) {
+
+          case "dtc":
+            loadDTC();
+            break;
+
+          case "freeze":
+            loadFreeze();
+            break;
         }
       }
     );
