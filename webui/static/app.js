@@ -392,76 +392,105 @@ clearDtcBtn.addEventListener(
 
 const freezeTableBody = document.querySelector("#freeze-table tbody");
 
-async function loadFreeze() {freezeTableBody.innerHTML = "";
-  try {
-    const response = await fetch("/api/freeze");
+async function loadFreeze() {
+    freezeTableBody.innerHTML = "";
+    try {
+        const response = await fetch("/api/freeze");
 
-    const data = await response.json();
+        const data = await response.json();
 
-    if (!data.connected) {
-      freezeTableBody.innerHTML =
-        `<tr>
+        if (!data.connected) {
+            freezeTableBody.innerHTML =
+                `<tr>
             <td colspan="2">
               OBD adapter not connected
             </td>
          </tr>`;
 
-      return;
-    }
+            return;
+        }
 
-    if (!data.supported) {
-      freezeTableBody.innerHTML =
-        `<tr>
+        if (!data.supported) {
+            freezeTableBody.innerHTML =
+                `<tr>
             <td colspan="2">
               No freeze frame data available
             </td>
          </tr>`;
 
-      return;
-    }
+            return;
+        }
 
-    if (data.freeze_dtc) {
-      const row = document.createElement("tr");
-      row.innerHTML =
-        `<td>Trigger DTC</td>
+        if (data.freeze_dtc) {
+            const row = document.createElement("tr");
+            row.innerHTML =
+                `<td>Trigger DTC</td>
          <td>${data.freeze_dtc}</td>`;
 
-      freezeTableBody.appendChild(
-        row
-      );
+            freezeTableBody.appendChild(
+                row
+            );
+        }
+
+    } catch (err) {
+
+        console.error(err);
     }
-
-  } catch (err) {
-
-    console.error(err);
-  }
 }
+
+// start-stop btn logic
+const logBtn = document.getElementById("start-log");
+
+let logging = false;
+
+logBtn.addEventListener("click", async () => {
+        const url = logging
+            ? "/api/logging/stop"
+            : "/api/logging/start";
+
+        const response = await fetch(url, {method: "POST"});
+        const data = await response.json();
+
+        logging = data.logging;
+        if (logging) {
+            logBtn.textContent =
+                "Stop Logging";
+        } else {
+            logBtn.textContent =
+                "Start Logging";
+        }
+    }
+);
 
 document.querySelectorAll(".tab-button").forEach(btn => {
     btn.addEventListener("click", () => {
-        // remove "active" from all buttons
-        document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
-        // hide all tabs
-        document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
-        // activate button
-        btn.classList.add("active");
-        const tab = btn.dataset.tab;
-        // show current tab
-        document.getElementById(tab).classList.add("active");
+            // remove "active" from all buttons
+            document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
+            // hide all tabs
+            document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+            // activate button
+            btn.classList.add("active");
+            const tab = btn.dataset.tab;
+            // show current tab
+            document.getElementById(tab).classList.add("active");
+            // export button
+            document.getElementById("export-current").addEventListener("click", () => {
+                window.location = "/api/export/current";
+            });
 
-        switch (tab) {
+            switch (tab) {
 
-          case "dtc":
-            loadDTC();
-            break;
+                case "dtc":
+                    loadDTC();
+                    break;
 
-          case "freeze":
-            loadFreeze();
-            break;
+                case "freeze":
+                    loadFreeze();
+                    break;
+            }
         }
-      }
     );
-  });
+});
 
 // ---------------------------------------------------------------------
 // START
