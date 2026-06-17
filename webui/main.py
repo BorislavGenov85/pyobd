@@ -580,7 +580,56 @@ async def stop_logging():
 
     return {"logging": False}
 
+# test
+@app.get("/api/tests")
+async def get_vehicle_tests():
+    if connection is None or not connection.is_connected():
+        return JSONResponse(status_code=400, content={"error": "OBD not connected"})
 
+    try:
+        async with obd_lock:
+            cmd = obd.commands.STATUS
+            response = await asyncio.to_thread(connection.query, cmd)
+
+        if response.is_null() or not response.value:
+            return {"status": "no_data", "tests": [], "engine_type": "unknown"}
+
+        status_obj = response.value
+        tests_list = []
+
+        engine_type = "unknown"
+        if hasattr(status_obj, "ignition_type"):
+
+            raw_type = str(status_obj.ignition_type).lower()
+            if "spark" in raw_type:
+                engine_type = "Бензин (Spark)"
+            elif "compression" in raw_type or "diesel" in raw_type:
+                engine_type = "Дизел (Compression)"
+
+        for attr_name in dir(status_obj):
+            if attr_name.startswith("_") or attr_name in ["MIL", "DTC_CNT", "DTC_count", "ignition_type"]:
+                continue
+
+            monitor = getattr(status_obj, attr_name)
+
+            if isinstance(monitor, dict) and "supported" in monitor:
+                ui_name = attr_name.upper() + "_MONITORING"
+                available = "---"
+                complete = "---"
+
+                if monitor.get("supported", False):
+                    available = "Available"
+                    complete = "Complete" if monitor.get("ready", False) else "Incomplete"
+
+                tests_list.append({"description": ui_name, "available": available, "complete": complete})
+
+        return {"status": "success", "engine_type": engine_type, "tests": tests_list}
+
+    except Exception as ex:
+        print("[TESTS API ERROR]", ex)
+        return JSONResponse(status_code=500, content={"error": str(ex)})
+
+    
 # ---------------------------------------------------------------------
 # RUN
 # ---------------------------------------------------------------------

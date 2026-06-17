@@ -335,6 +335,63 @@ async function loadDTC() {
     }
 }
 
+async function loadVehicleTests() {
+    const tableBody = document.querySelector('#tests-table tbody') || document.createElement('tbody');
+    if (!document.querySelector('#tests-table tbody')) {
+        document.getElementById('tests-table').appendChild(tableBody);
+    }
+
+    tableBody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:gray;">Loading system tests...</td></tr>`;
+
+    try {
+        const response = await fetch('/api/tests');
+        const data = await response.json();
+
+        if (data.status !== 'success' || !data.tests || data.tests.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:red;">No diagnostic data available. Make sure OBD is connected.</td></tr>`;
+            return;
+        }
+
+        const engineBadge = document.getElementById('engine-type-badge');
+        if (engineBadge && data.engine_type) {
+            engineBadge.innerHTML = `Engine Type: <span class="badge ${data.engine_type.includes('Бензин') ? 'badge-spark' : 'badge-diesel'}">${data.engine_type}</span>`;
+        }
+
+        tableBody.innerHTML = '';
+
+        data.tests.forEach(test => {
+            const row = document.createElement('tr');
+
+            const formattedName = test.description
+                .toLowerCase()
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, c => c.toUpperCase());
+
+            let statusHtml = '';
+            if (test.available === 'Available') {
+                if (test.complete === 'Complete') {
+                    statusHtml = `<span class="badge-ok">✅ Complete</span>`;
+                } else {
+                    statusHtml = `<span class="badge-warning">⚠️ Incomplete</span>`;
+                }
+            } else {
+                statusHtml = `<span style="color: gray; font-weight: 700;">✖ Not Supported</span>`;
+            }
+
+            row.innerHTML = `
+                <td><strong>${formattedName}</strong></td>
+                <td>${statusHtml}</td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+
+    } catch (error) {
+        console.error('Error loading tests:', error);
+        tableBody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:red;">Server error connection failed.</td></tr>`;
+    }
+}
+
 
 refreshDtcBtn.addEventListener(
     "click",
@@ -477,6 +534,10 @@ document.querySelectorAll(".tab-button").forEach(btn => {
             document.getElementById("export-current").addEventListener("click", () => {
                 window.location = "/api/export/current";
             });
+            // test btn
+            document.getElementById('tab-btn-tests')?.addEventListener('click', () => {
+                window.location = "/api/tests"
+            });
 
             switch (tab) {
 
@@ -487,6 +548,10 @@ document.querySelectorAll(".tab-button").forEach(btn => {
                 case "freeze":
                     loadFreeze();
                     break;
+
+                case "tests":
+                    loadVehicleTests();
+                    break
             }
         }
     );
