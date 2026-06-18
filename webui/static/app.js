@@ -531,9 +531,41 @@ document.querySelectorAll(".tab-button").forEach(btn => {
             // show current tab
             document.getElementById(tab).classList.add("active");
             // export button
-            document.getElementById("export-current").addEventListener("click", () => {
-                window.location = "/api/export/current";
-            });
+            document.getElementById("export-current")
+                .addEventListener("click", async function() {const btn = this;
+                    if (btn.disabled) return;
+
+                    btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = "⏳ Exporting...";
+
+                    try {
+                        const response = await fetch('/api/export/current');
+                        if (!response.ok) throw new Error('Network response was not ok');
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+
+                        const a = document.createElement('a');
+                        a.href = url;
+
+                        const timestamp = new Date().toISOString().slice(0, 19).replace(/T|:/g, "_");
+                        a.download = `snapshot_${timestamp}.csv`;
+
+                        document.body.appendChild(a);
+                        a.click();
+
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+
+                    } catch (error) {
+                        console.error('Export error:', error);
+                        alert('Грешка при експорт на данни! Проверете OBD връзката.');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                });
             // test btn
             document.getElementById('tab-btn-tests')?.addEventListener('click', () => {
                 window.location = "/api/tests"

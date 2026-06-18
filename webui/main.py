@@ -38,12 +38,13 @@ log_file = None
 log_writer = None
 current_log_path = None
 
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
+LOG_DIR = BASE_DIR.parent / "logs"
 
 SNAPSHOT_DIR = LOG_DIR / "snapshots"
 SESSION_DIR = LOG_DIR / "sessions"
 
+LOG_DIR.mkdir(exist_ok=True)
 SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -504,7 +505,7 @@ async def export_current():
         return JSONResponse(status_code=400, content={"error": "No data available"})
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = SNAPSHOT_DIR / f"{timestamp}_{safe_filename(vehicle_info['vin'])}.csv"
+    filename = SNAPSHOT_DIR / f"{timestamp}_{safe_filename(vehicle_info.get('vin', 'unknown'))}.csv"
 
     current_data_snapshot = dict(latest_values)
 
@@ -610,26 +611,32 @@ async def get_vehicle_tests():
             if attr_name.startswith("_") or attr_name in ["MIL", "DTC_CNT", "DTC_count", "ignition_type"]:
                 continue
 
-            monitor = getattr(status_obj, attr_name)
+            try:
+                monitor = getattr(status_obj, attr_name)
 
-            if isinstance(monitor, dict) and "supported" in monitor:
-                ui_name = attr_name.upper() + "_MONITORING"
-                available = "---"
-                complete = "---"
+                if monitor is not None and isinstance(monitor, dict) and "supported" in monitor:
+                    ui_name = attr_name.upper() + "_MONITORING"
+                    available = "---"
+                    complete = "---"
 
-                if monitor.get("supported", False):
-                    available = "Available"
-                    complete = "Complete" if monitor.get("ready", False) else "Incomplete"
+                    if monitor.get("supported", False):
+                        available = "Available"
+                        complete = "Complete" if monitor.get("ready", False) else "Incomplete"
 
-                tests_list.append({"description": ui_name, "available": available, "complete": complete})
-
+                    tests_list.append({
+                        "description": ui_name,
+                        "available": available,
+                        "complete": complete
+                    })
+            except Exception:
+                continue
         return {"status": "success", "engine_type": engine_type, "tests": tests_list}
 
     except Exception as ex:
         print("[TESTS API ERROR]", ex)
         return JSONResponse(status_code=500, content={"error": str(ex)})
 
-    
+
 # ---------------------------------------------------------------------
 # RUN
 # ---------------------------------------------------------------------
